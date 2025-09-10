@@ -64,5 +64,9 @@ df_transformed['embarked'] = df_transformed['embarked'].fillna(most_frequent_por
 df_transformed['family_size'] = df_transformed['sib_sp'] + df_transformed['parch'] + 1
 print("\nCreated 'family_size' feature.")
 
-# Проверим результат на первых 5 строках
-print(df_transformed[['sib_sp', 'parch', 'family_size']].head())
+# Шаг 6: Удаление ненужных и избыточных колонок
+columns_to_drop = ['passenger_id', 'name', 'ticket', 'sibsp', 'parch']
+df_transformed.drop(columns=columns_to_drop, inplace=True)
+print(f"\nDropped unnecessary columns: {columns_to_drop}")
+
+print("\nTransformation step completed.")
