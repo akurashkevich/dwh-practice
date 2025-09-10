@@ -65,7 +65,7 @@ df_transformed['family_size'] = df_transformed['sib_sp'] + df_transformed['parch
 print("\nCreated 'family_size' feature.")
 
 # Шаг 6: Удаление ненужных и избыточных колонок
-columns_to_drop = ['passenger_id', 'name', 'ticket', 'sibsp', 'parch']
+columns_to_drop = ['passenger_id', 'name', 'ticket', 'sib_sp', 'parch']
 df_transformed.drop(columns=columns_to_drop, inplace=True)
 print(f"\nDropped unnecessary columns: {columns_to_drop}")
 
