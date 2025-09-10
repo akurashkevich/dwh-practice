@@ -59,3 +59,10 @@ print(f"Most frequent port in 'embarked' is: {most_frequent_port}")
 
 # Заполняем пропуски этим значением
 df_transformed['embarked'] = df_transformed['embarked'].fillna(most_frequent_port)
+
+# Шаг 5: Создание новой колонки 'family_size'
+df_transformed['family_size'] = df_transformed['sib_sp'] + df_transformed['parch'] + 1
+print("\nCreated 'family_size' feature.")
+
+# Проверим результат на первых 5 строках
+print(df_transformed[['sib_sp', 'parch', 'family_size']].head())
