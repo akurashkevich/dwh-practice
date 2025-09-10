@@ -40,3 +40,11 @@ df_transformed.columns = [camel_to_snake(col) for col in df_transformed.columns]
 
 print("Cleaned column names:")
 print(df_transformed.columns)
+
+# Шаг 2: Обработка пропусков в 'age'
+# Вычисляем медианный возраст
+median_age = df_transformed['age'].median()
+print(f"\nMedian age: {median_age}")
+
+# Заполняем все пропуски в колонке 'age' вычисленной медианой
+df_transformed['age'] = df_transformed['age'].fillna(median_age)
