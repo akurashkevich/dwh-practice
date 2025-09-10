@@ -70,3 +70,21 @@ df_transformed.drop(columns=columns_to_drop, inplace=True)
 print(f"\nDropped unnecessary columns: {columns_to_drop}")
 
 print("\nTransformation step completed.")
+
+# --- LOAD ---
+print("\nStarting Load step...")
+
+cleaned_data_path = 'titanic_cleaned.csv'
+
+try:
+    df_transformed.to_csv(cleaned_data_path, index=False)
+    print(f"Successfully saved cleaned data to {cleaned_data_path}")
+    print("ETL process completed successfully.")
+except Exception as e:
+    print(f"Error during Load step: {e}")
+
+print("\nFinal DataFrame head:")
+print(df_transformed.head())
+
+print("\nFinal DataFrame Info:")
+df_transformed.info()
