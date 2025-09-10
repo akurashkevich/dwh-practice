@@ -48,3 +48,6 @@ print(f"\nMedian age: {median_age}")
 
 # Заполняем все пропуски в колонке 'age' вычисленной медианой
 df_transformed['age'] = df_transformed['age'].fillna(median_age)
+
+# Шаг 3: Удаление колонок с большим количеством пропусков
+df_transformed.drop(columns=['cabin'], inplace=True)
