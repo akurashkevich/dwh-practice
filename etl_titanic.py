@@ -51,3 +51,11 @@ df_transformed['age'] = df_transformed['age'].fillna(median_age)
 
 # Шаг 3: Удаление колонок с большим количеством пропусков
 df_transformed.drop(columns=['cabin'], inplace=True)
+
+# Шаг 4: Заполнение пропусков в 'embarked'
+# Находим самое частое значение
+most_frequent_port = df_transformed['embarked'].mode()[0]
+print(f"Most frequent port in 'embarked' is: {most_frequent_port}")
+
+# Заполняем пропуски этим значением
+df_transformed['embarked'] = df_transformed['embarked'].fillna(most_frequent_port)
