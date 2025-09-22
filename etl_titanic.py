@@ -1,5 +1,22 @@
+import os
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+import logging
 import pandas as pd
 import re
+
+logging.basicConfig(level=logging.INFO, filename='etl.log', filemode='w',
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+load_dotenv()
+logging.info("Environment variables loaded.")
+
+PG_USER = os.getenv('POSTGRES_USER')
+PG_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+PG_HOST = os.getenv('POSTGRES_HOST', 'localhost')
+PG_PORT = os.getenv('POSTGRES_PORT')
+PG_DB = os.getenv('POSTGRES_DB')
+
+CH_HOST = os.getenv('CLICKHOUSE_HOST', 'localhost')
 
 # --- EXTRACT ---
 print("Starting Extract step...")
