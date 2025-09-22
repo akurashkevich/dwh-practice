@@ -14,6 +14,9 @@ services:
   clickhouse_target:
     image: clickhouse/clickhouse-server
     container_name: clickhouse_target_db
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
     ports:
       - "${CLICKHOUSE_PORT}:8123"
       - "9000:9000"

@@ -1,9 +1,17 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
+import clickhouse_connect
 import logging
 import pandas as pd
 import re
+
+def camel_to_snake(name):
+    """
+    Конвертирует строку из CamelCase в snake_case.
+    """
+    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
 logging.basicConfig(level=logging.INFO, filename='etl.log', filemode='w',
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -17,19 +25,22 @@ PG_PORT = os.getenv('POSTGRES_PORT')
 PG_DB = os.getenv('POSTGRES_DB')
 
 CH_HOST = os.getenv('CLICKHOUSE_HOST', 'localhost')
+CH_PORT = os.getenv('CLICKHOUSE_PORT', '8123')
+CH_USER = os.getenv('CLICKHOUSE_USER')
+CH_PASSWORD = os.getenv('CLICKHOUSE_PASSWORD')
+CH_DB = os.getenv('CLICKHOUSE_DB', 'default')
 
 # --- EXTRACT ---
-print("Starting Extract step...")
-
-file_path = 'titanic_raw.csv'
-
+logging.info("--- Starting EXTRACT step ---")
 try:
-    df = pd.read_csv(file_path)
-    print(f"Successfully loaded data from {file_path}")
-    print(f"Shape of the DataFrame: {df.shape}")
+    pg_conn_str = f'postgresql://{PG_USER}:{PG_PASSWORD}@{PG_HOST}:{PG_PORT}/{PG_DB}'
+    pg_engine = create_engine(pg_conn_str)
     
-except FileNotFoundError:
-    print(f"Error: The file at {file_path} was not found.")
+    df = pd.read_sql_query('SELECT * FROM titanic_raw', pg_engine)
+    
+    logging.info(f"Successfully extracted {len(df)} rows from PostgreSQL.")
+except Exception as e:
+    logging.error(f"Error during EXTRACT step: {e}")
     exit()
 
 # --- Initial Inspection ---
@@ -38,13 +49,6 @@ print(df.head())
 
 print("\nDataFrame Info:")
 df.info()
-
-def camel_to_snake(name):
-    """
-    Конвертирует строку из CamelCase в snake_case.
-    """
-    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
 # --- TRANSFORM ---
 print("\nStarting Transform step...")
@@ -89,16 +93,45 @@ print(f"\nDropped unnecessary columns: {columns_to_drop}")
 print("\nTransformation step completed.")
 
 # --- LOAD ---
-print("\nStarting Load step...")
-
-cleaned_data_path = 'titanic_cleaned.csv'
-
+logging.info("--- Starting LOAD step ---")
 try:
-    df_transformed.to_csv(cleaned_data_path, index=False)
-    print(f"Successfully saved cleaned data to {cleaned_data_path}")
-    print("ETL process completed successfully.")
+    import clickhouse_connect
+
+    table_name = 'cleaned_titanic'
+    
+    client = clickhouse_connect.get_client(
+        host=CH_HOST, 
+        port=int(CH_PORT),
+        user=CH_USER, 
+        password=CH_PASSWORD, 
+        database=CH_DB
+    )
+    logging.info("Successfully connected to ClickHouse.")
+
+    client.command(f'DROP TABLE IF EXISTS {table_name}')
+    logging.info(f"Table {table_name} dropped if existed.")
+
+    create_table_ddl = f"""
+    CREATE TABLE {table_name} (
+        survived Int64,
+        pclass Int64,
+        sex String,
+        age Float64,
+        fare Float64,
+        embarked String,
+        family_size Int64
+    ) ENGINE = MergeTree()
+    ORDER BY tuple()
+    """
+    client.command(create_table_ddl)
+    logging.info(f"Table {table_name} created with MergeTree engine.")
+
+    client.insert_df(table_name, df_transformed)
+    logging.info(f"Successfully loaded {len(df_transformed)} rows into ClickHouse.")
+    logging.info("ETL process completed successfully.")
+
 except Exception as e:
-    print(f"Error during Load step: {e}")
+    logging.error(f"Error during LOAD step: {e}")
 
 print("\nFinal DataFrame head:")
 print(df_transformed.head())
