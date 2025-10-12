@@ -205,3 +205,11 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Airflow specific ignores
+airflow_practice/logs/
+airflow_practice/plugins/
+airflow_practice/config/
+
+# Python cache
+**/__pycache__/
